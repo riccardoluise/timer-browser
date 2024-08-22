@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f8ff;
+        }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 300px;
+        }
+        #timer {
+            font-size: 4rem;
+            margin: 1rem 0;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="number"] {
+            width: 60px;
+            font-size: 1.2rem;
+            padding: 0.5rem;
+            margin: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+        }
+        button {
+            font-size: 1.2rem;
+            padding: 0.7rem 1.5rem;
+            margin: 0.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        #avvia { background-color: #4CAF50; color: white; }
+        #pausa { background-color: #FFA500; color: white; }
+        #reset { background-color: #f44336; color: white; }
+        .checkbox-container {
+            margin-top: 1rem;
+            font-size: 1.1rem;
+        }
+        input[type="checkbox"] {
+            transform: scale(1.5);
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Timer Avanzato</h1>
+        <div id="timer">00:00:00</div>
+        <input type="number" id="hours" placeholder="Ore" min="0" max="23" value="0">
+        <input type="number" id="minutes" placeholder="Min" min="0" max="59" value="0">
+        <input type="number" id="seconds" placeholder="Sec" min="0" max="59" value="0">
+        <br>
+        <button id="avvia" onclick="startTimer()">Avvia</button>
+        <button id="pausa" onclick="pauseTimer()">Pausa</button>
+        <button id="reset" onclick="resetTimer()">Reset</button>
+        <div class="checkbox-container">
+            <input type="checkbox" id="autoRepeat">
+            <label for="autoRepeat">Ripeti automaticamente</label>
+        </div>
+    </div>
+
+    <script>
+        let timer;
+        let totalSeconds = 0;
+        let isRunning = false;
+        let originalTitle = document.title;
+        let originalSeconds = 0;
+
+        function updateTimerDisplay() {
+            const hours = parseInt(document.getElementById('hours').value) || 0;
+            const minutes = parseInt(document.getElementById('minutes').value) || 0;
+            const seconds = parseInt(document.getElementById('seconds').value) || 0;
+            totalSeconds = hours * 3600 + minutes * 60 + seconds;
+            updateDisplay();
+        }
+
+        document.getElementById('hours').addEventListener('input', updateTimerDisplay);
+        document.getElementById('minutes').addEventListener('input', updateTimerDisplay);
+        document.getElementById('seconds').addEventListener('input', updateTimerDisplay);
+
+        function startTimer() {
+            if (!isRunning) {
+                if (totalSeconds === 0) {
+                    updateTimerDisplay();
+                }
+                originalSeconds = totalSeconds;
+                if (totalSeconds > 0) {
+                    timer = setInterval(updateTimer, 1000);
+                    isRunning = true;
+                }
+            }
+        }
+
+        function pauseTimer() {
+            clearInterval(timer);
+            isRunning = false;
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            isRunning = false;
+            totalSeconds = 0;
+            document.getElementById('hours').value = '0';
+            document.getElementById('minutes').value = '0';
+            document.getElementById('seconds').value = '0';
+            updateDisplay();
+        }
+
+        function updateTimer() {
+            if (totalSeconds > 0) {
+                totalSeconds--;
+                updateDisplay();
+            } else {
+                clearInterval(timer);
+                isRunning = false;
+                timerEnded();
+                if (document.getElementById('autoRepeat').checked) {
+                    totalSeconds = originalSeconds;
+                    startTimer();
+                }
+            }
+        }
+
+        function updateDisplay() {
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            let display = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+            document.getElementById('timer').textContent = display;
+
+            // Logica corretta per il titolo della scheda
+            let tabTitle = "";
+            if (hours > 0) {
+                tabTitle = `${hours}:${pad(minutes)}:${pad(seconds)}`;
+            } else if (minutes > 0) {
+                tabTitle = `${minutes}:${pad(seconds)}`;
+            } else {
+                tabTitle = `${seconds}`;
+            }
+            document.title = tabTitle;
+        }
+
+        function pad(num) {
+            return num.toString().padStart(2, '0');
+        }
+
+        function timerEnded() {
+            document.title = "🔔 Timer Scaduto!";
+            setTimeout(() => {
+                document.title = originalTitle;
+            }, 3000);
+
+            if (Notification.permission === "granted") {
+                new Notification("🔔 Il tuo timer è scaduto!");
+            } else if (Notification.permission !== "denied") {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        new Notification("🔔 Il tuo timer è scaduto!");
+                    }
+                });
+            }
+        }
+
+        // Richiedi il permesso per le notifiche all'avvio
+        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
+
+        // Inizializza il display del timer
+        updateTimerDisplay();
+    </script>
+</body>
+</html>
