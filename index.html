@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -49,8 +49,7 @@
         button:hover {
             opacity: 0.9;
         }
-        #avvia { background-color: #4CAF50; color: white; }
-        #pausa { background-color: #FFA500; color: white; }
+        #startPause { background-color: #4CAF50; color: white; }
         #reset { background-color: #f44336; color: white; }
         .checkbox-container {
             margin-top: 1rem;
@@ -60,22 +59,40 @@
             transform: scale(1.5);
             margin-right: 0.5rem;
         }
+        .quick-set {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        .quick-set button {
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            margin: 0.25rem;
+            background-color: #007bff;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Timer Avanzato</h1>
+        <h1>Advanced Timer</h1>
         <div id="timer">00:00:00</div>
-        <input type="number" id="hours" placeholder="Ore" min="0" max="23" value="0">
+        <input type="number" id="hours" placeholder="Hours" min="0" max="23" value="0">
         <input type="number" id="minutes" placeholder="Min" min="0" max="59" value="0">
         <input type="number" id="seconds" placeholder="Sec" min="0" max="59" value="0">
         <br>
-        <button id="avvia" onclick="startTimer()">Avvia</button>
-        <button id="pausa" onclick="pauseTimer()">Pausa</button>
+        <button id="startPause" onclick="toggleTimer()">Start</button>
         <button id="reset" onclick="resetTimer()">Reset</button>
         <div class="checkbox-container">
             <input type="checkbox" id="autoRepeat">
-            <label for="autoRepeat">Ripeti automaticamente</label>
+            <label for="autoRepeat">Auto-repeat</label>
+        </div>
+        <div class="quick-set">
+            <button onclick="setQuickTimer(5)">5 min</button>
+            <button onclick="setQuickTimer(10)">10 min</button>
+            <button onclick="setQuickTimer(15)">15 min</button>
+            <button onclick="setQuickTimer(30)">30 min</button>
         </div>
     </div>
 
@@ -99,6 +116,14 @@
         document.getElementById('minutes').addEventListener('input', updateTimerDisplay);
         document.getElementById('seconds').addEventListener('input', updateTimerDisplay);
 
+        function toggleTimer() {
+            if (isRunning) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        }
+
         function startTimer() {
             if (!isRunning) {
                 if (totalSeconds === 0) {
@@ -108,6 +133,8 @@
                 if (totalSeconds > 0) {
                     timer = setInterval(updateTimer, 1000);
                     isRunning = true;
+                    document.getElementById('startPause').textContent = 'Pause';
+                    document.getElementById('startPause').style.backgroundColor = '#FFA500';
                 }
             }
         }
@@ -115,6 +142,8 @@
         function pauseTimer() {
             clearInterval(timer);
             isRunning = false;
+            document.getElementById('startPause').textContent = 'Start';
+            document.getElementById('startPause').style.backgroundColor = '#4CAF50';
         }
 
         function resetTimer() {
@@ -130,6 +159,8 @@
                 activeNotification = null;
             }
             document.title = originalTitle;
+            document.getElementById('startPause').textContent = 'Start';
+            document.getElementById('startPause').style.backgroundColor = '#4CAF50';
         }
 
         function updateTimer() {
@@ -143,6 +174,9 @@
                 if (document.getElementById('autoRepeat').checked) {
                     totalSeconds = originalSeconds;
                     startTimer();
+                } else {
+                    document.getElementById('startPause').textContent = 'Start';
+                    document.getElementById('startPause').style.backgroundColor = '#4CAF50';
                 }
             }
         }
@@ -171,7 +205,7 @@
         }
 
         function timerEnded() {
-            document.title = "🔔 Timer Scaduto!";
+            document.title = "🔔 Timer Expired!";
 
             if (Notification.permission === "granted") {
                 showPersistentNotification();
@@ -188,7 +222,7 @@
             if (activeNotification) {
                 activeNotification.close();
             }
-            activeNotification = new Notification("🔔 Il tuo timer è scaduto!", {
+            activeNotification = new Notification("🔔 Your timer has expired!", {
                 requireInteraction: true
             });
 
@@ -200,12 +234,20 @@
             };
         }
 
-        // Richiedi il permesso per le notifiche all'avvio
+        function setQuickTimer(minutes) {
+            resetTimer();
+            totalSeconds = minutes * 60;
+            document.getElementById('minutes').value = minutes;
+            document.getElementById('seconds').value = '0';
+            updateDisplay();
+        }
+
+        // Request notification permission on startup
         if (Notification.permission !== "granted" && Notification.permission !== "denied") {
             Notification.requestPermission();
         }
 
-        // Inizializza il display del timer
+        // Initialize timer display
         updateTimerDisplay();
     </script>
 </body>
