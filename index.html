@@ -89,10 +89,9 @@
             <label for="autoRepeat">Auto-repeat</label>
         </div>
         <div class="quick-set">
-            <button onclick="setQuickTimer(5)">5 min</button>
-            <button onclick="setQuickTimer(10)">10 min</button>
-            <button onclick="setQuickTimer(15)">15 min</button>
-            <button onclick="setQuickTimer(30)">30 min</button>
+            <button onclick="addTime(5)">+5 min</button>
+            <button onclick="addTime(10)">+10 min</button>
+            <button onclick="addTime(15)">+15 min</button>
         </div>
     </div>
 
@@ -186,6 +185,10 @@
             const minutes = Math.floor((totalSeconds % 3600) / 60);
             const seconds = totalSeconds % 60;
 
+            document.getElementById('hours').value = hours;
+            document.getElementById('minutes').value = minutes;
+            document.getElementById('seconds').value = seconds;
+
             let display = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
             document.getElementById('timer').textContent = display;
 
@@ -234,11 +237,8 @@
             };
         }
 
-        function setQuickTimer(minutes) {
-            resetTimer();
-            totalSeconds = minutes * 60;
-            document.getElementById('minutes').value = minutes;
-            document.getElementById('seconds').value = '0';
+        function addTime(minutes) {
+            totalSeconds += minutes * 60;
             updateDisplay();
         }
 
