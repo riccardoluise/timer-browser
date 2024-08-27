@@ -85,6 +85,7 @@
         let isRunning = false;
         let originalTitle = document.title;
         let originalSeconds = 0;
+        let activeNotification = null;
 
         function updateTimerDisplay() {
             const hours = parseInt(document.getElementById('hours').value) || 0;
@@ -124,6 +125,11 @@
             document.getElementById('minutes').value = '0';
             document.getElementById('seconds').value = '0';
             updateDisplay();
+            if (activeNotification) {
+                activeNotification.close();
+                activeNotification = null;
+            }
+            document.title = originalTitle;
         }
 
         function updateTimer() {
@@ -149,7 +155,6 @@
             let display = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
             document.getElementById('timer').textContent = display;
 
-            // Logica corretta per il titolo della scheda
             let tabTitle = "";
             if (hours > 0) {
                 tabTitle = `${hours}:${pad(minutes)}:${pad(seconds)}`;
@@ -167,19 +172,32 @@
 
         function timerEnded() {
             document.title = "🔔 Timer Scaduto!";
-            setTimeout(() => {
-                document.title = originalTitle;
-            }, 3000);
 
             if (Notification.permission === "granted") {
-                new Notification("🔔 Il tuo timer è scaduto!");
+                showPersistentNotification();
             } else if (Notification.permission !== "denied") {
                 Notification.requestPermission().then(permission => {
                     if (permission === "granted") {
-                        new Notification("🔔 Il tuo timer è scaduto!");
+                        showPersistentNotification();
                     }
                 });
             }
+        }
+
+        function showPersistentNotification() {
+            if (activeNotification) {
+                activeNotification.close();
+            }
+            activeNotification = new Notification("🔔 Il tuo timer è scaduto!", {
+                requireInteraction: true
+            });
+
+            activeNotification.onclick = function() {
+                window.focus();
+                this.close();
+                activeNotification = null;
+                document.title = originalTitle;
+            };
         }
 
         // Richiedi il permesso per le notifiche all'avvio
